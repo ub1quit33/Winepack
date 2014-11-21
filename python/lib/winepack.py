@@ -75,6 +75,9 @@ class Application(object):
             icon = root.find('icon')
             if icon is not None and 'path' in icon.attrib:
                 self.icon_path = icon.attrib['path']
+            appname = root.find('appname')
+            if appname is not None:
+                self.appname = appname.text
         except IOError:
             pass
         return
@@ -97,8 +100,8 @@ def load_applications(category):
     application_dirnames = get_toplevel_subdirs(apps_location)
     for dirname in application_dirnames:
         a = Application(dirname)
+        a.load()
         if a not in LOADED_APPLICATIONS:
-            a.load()
             category.add_application(a)
             LOADED_APPLICATIONS.append(a)
 

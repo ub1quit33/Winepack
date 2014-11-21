@@ -431,9 +431,10 @@ class InstallWindow(wx.Frame):
         if(self.live == 1):
             InstallApplication = "ExecLiveInstall"
         else:
-            InstallApplication = self.list_apps.GetItemText(self.list_apps.GetSelection())
+            data = self.list_apps.GetItemData(self.list_apps.GetSelection())
+            InstallApplication = data.GetData()
         
-        if(InstallApplication == "about:creator"):
+        if(InstallApplication.appname == "about:creator"):
             self.EasterEgg = sp.egg(None, -1, "PlayOnLinux Conceptor")
             self.EasterEgg.Show()
             self.EasterEgg.Center(wx.BOTH)
@@ -445,24 +446,14 @@ class InstallWindow(wx.Frame):
                     wx.MessageBox(_("{0} is not related to WineHQ.\n\nTo ensure that the results will be comparable from one computer to another and to avoid regressions, we specify a working wine version for each program. This wine version will quickly become out to date, but we won't change the installer until new tests are made and it takes time.\n\nFor those reason, please do NOT send any bug report or ask any support on WineHQ forums if you are using PlayOnLinux.\n\nIf you want to help the project to make some tests in order to avoid using out of date wine versions, do not hesitate to go on our website.\n\nThank you.").format(os.environ["APPLICATION_TITLE"]),_("Please read this"))
                 playonlinux.SetSettings("FIRST_INSTALL_DONE_WITH_WINE","TRUE")
 
-            if(os.path.exists(Variables.playonlinux_rep+"/configurations/listes/search")):
-                content = codecs.open(Variables.playonlinux_rep+"/configurations/listes/search", "r", "utf-8").read().split("\n")
-                found = False
-                for line in content:
-                    split = line.split("~")
-                    if(split[0] == InstallApplication):
-                        found = True
-                        break;
-                if(found == True):
-                    if(len(split) <= 1):
-                        self.UpdatePol(self)
-                    else:
-                        if(split[1] == "1"):
-                            wx.MessageBox(_("This program is currently in testing.\n\nIt might not work as expected. Your feedback, positive or negative, is specially important to improve this installer."),_("Please read this"))
-                        if(split[2] == "1"):
-                            wx.MessageBox(_("This program contains a protection against copy (DRM) incompatible with emulation.\nThe only workaround is to use a \"no-cd\" patch, but since those can also be used for piracy purposes we won't give any support on this matter."), _("Please read this"))
+            if(InstallApplication.includes['testing'] == "1"):
+                wx.MessageBox(_("This program is currently in testing.\n\nIt might not work as expected. Your feedback, positive or negative, is specially important to improve this installer."),_("Please read this"))
+            if(InstallApplication.includes['nocd'] == "1"):
+                wx.MessageBox(_("This program contains a protection against copy (DRM) incompatible with emulation.\nThe only workaround is to use a \"no-cd\" patch, but since those can also be used for piracy purposes we won't give any support on this matter."), _("Please read this"))
 
-            os.system("bash \""+Variables.playonlinux_env+"/bash/install\" \""+InstallApplication.encode("utf-8","replace")+"\"&")
+            script = '%s/bash/install' % Variables.playonlinux_env
+            arg = InstallApplication.location.encode("utf-8","replace")
+            os.system('"bash" "%s" "%s"' % (script, arg))
 
         self.Destroy()
         return
@@ -547,7 +538,8 @@ class InstallWindow(wx.Frame):
                         pass
                 else:
                     self.imagesapps.Add(wx.Bitmap(Variables.playonlinux_env+"/etc/playonlinux22.png"))
-                itemId = self.list_apps.AppendItem(self.root_apps, appname.encode('utf-8','ignore'), self.i)
+                data = wx.TreeItemData(app)
+                itemId = self.list_apps.AppendItem(self.root_apps, appname.encode('utf-8','ignore'), self.i, data=data)
                 if testing == 1:
                     # (255,255,214) is web site color for beta, but it's not very visible next to plain white,
                     # and red is the color of danger

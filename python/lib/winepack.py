@@ -13,7 +13,6 @@ class Category(object):
 
     name = ''
     location = ''
-    meta_path = ''
     icon_path = ''
 
     applications = []
@@ -21,21 +20,15 @@ class Category(object):
     def __init__(self, dirname):
         self.name = os.path.basename(dirname)
         self.location = dirname
-        self.meta_path = '%s/metadata.xml' % self.location
         self.icon_path = '%s/icon.png' % self.location
-    def load(self, name):
-        try:
-            input = open(self.meta_path, 'r')
-        except IOError:
-            return
-    def add_application(self, application):
-        self.applications.append(application)
-        application.category = self
-        application.category_index = len(self.applications) - 1
     def __eq__(self, other):
         return self.name == other
     def __ne__(self, other):
         return not self.__eq__(other)
+    def add_application(self, application):
+        self.applications.append(application)
+        application.category = self
+        application.category_index = len(self.applications) - 1
 
 class Application(object):
 

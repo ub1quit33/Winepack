@@ -26,6 +26,7 @@ import lib.lng
 import lib.playonlinux as playonlinux
 from wx.lib.ClickableHtmlWindow import PyClickableHtmlWindow
 import wx.lib.hyperlink
+import lib.winepack as winepack
 
 class Wminiature(wx.Frame):
     def __init__(self,parent,id,title,img):
@@ -211,17 +212,12 @@ class InstallWindow(wx.Frame):
             self.fontText = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,False, "", wx.FONTENCODING_DEFAULT)
             self.fontTitre = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, "", wx.FONTENCODING_DEFAULT)
 
-        self.addCat(_("Accessories"),Variables.playonlinux_env+"/resources/images/install/32/applications-accessories.png",0)
-        self.addCat(_("Development"),Variables.playonlinux_env+"/resources/images/install/32/applications-development.png",1)
-        self.addCat(_("Education"),Variables.playonlinux_env+"/resources/images/install/32/applications-science.png",2)
-        self.addCat(_("Games"),Variables.playonlinux_env+"/resources/images/install/32/applications-games.png",3)
-        self.addCat(_("Graphics"),Variables.playonlinux_env+"/resources/images/install/32/applications-graphics.png",4)
-        self.addCat(_("Internet"),Variables.playonlinux_env+"/resources/images/install/32/applications-internet.png",5)
-        self.addCat(_("Multimedia"),Variables.playonlinux_env+"/resources/images/install/32/applications-multimedia.png",6)
-        self.addCat(_("Office"),Variables.playonlinux_env+"/resources/images/install/32/applications-office.png",7)
-        self.addCat(_("Other"),Variables.playonlinux_env+"/resources/images/install/32/applications-other.png",8)
-        self.addCat(_("Patches"),Variables.playonlinux_env+"/resources/images/install/32/view-refresh.png",9)
-
+        ## winepack Category loader
+        winepack.load_categories()
+        i = 0
+        for c in winepack.LOADED_CATEGORIES:
+            self.addCat(_(c.name),c.icon_path,i)
+            i += 1
 
         self.live = 0
         self.openMin = False

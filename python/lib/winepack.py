@@ -4,6 +4,7 @@ from .Variables import playonlinux_rep
 winepack_home = '%s/winepack' % playonlinux_rep
 os.environ["WINEPACK_HOME"] = winepack_home
 
+LOADED_CATEGORIES = []
 
 class Category(object):
 
@@ -12,7 +13,6 @@ class Category(object):
     meta_path = ''
     icon_path = ''
 
-    iid = -1
     applications = []
 
     def __init__(self, dirname):
@@ -29,6 +29,10 @@ class Category(object):
         self.applications.append(application)
         application.category = self
         application.category_index = len(self.applications) - 1
+    def __eq__(self, other):
+        return self.name == other
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 class Application(object):
 
@@ -50,7 +54,15 @@ class Application(object):
         except IOError:
             return
 
-def winepack_call_POL(method, *args):
+def load_categories():
+    category_names = os.listdir(winepack_home)
+    for name in category_names:
+        if name not in LOADED_CATEGORIES:
+            dirname = '%s/%s' % (winepack_home, name)
+            c = Category(dirname)
+            LOADED_CATEGORIES.append(c)
+
+def call_POL(method, *args):
     '''
     method to connect to POL GUI server and issue calls to POL window methods
     This method wraps an IPC mechanism which communicates with mainwindow.py.

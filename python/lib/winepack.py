@@ -22,7 +22,7 @@ class Category(object):
         self.location = dirname
         self.icon_path = '%s/icon.png' % self.location
     def __eq__(self, other):
-        return self.name == other
+        return self.name == other.name
     def __ne__(self, other):
         return not self.__eq__(other)
     def add_application(self, application):
@@ -86,11 +86,10 @@ def get_toplevel_subdirs(directory):
     return subdirs
 
 def load_categories():
-    category_names = os.listdir(winepack_home)
-    for name in category_names:
-        if name not in LOADED_CATEGORIES:
-            dirname = '%s/%s' % (winepack_home, name)
-            c = Category(dirname)
+    category_dirnames = get_toplevel_subdirs(winepack_home)
+    for dirname in category_dirnames:
+        c = Category(dirname)
+        if c not in LOADED_CATEGORIES:
             LOADED_CATEGORIES.append(c)
 
 def load_applications(category):

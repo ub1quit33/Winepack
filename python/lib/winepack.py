@@ -1,10 +1,13 @@
 import os, socket
+import xml.etree.cElementTree as ET
 from .Variables import playonlinux_rep
+from subprocess import Popen, PIPE
 
 winepack_home = '%s/winepack' % playonlinux_rep
 os.environ["WINEPACK_HOME"] = winepack_home
 
 LOADED_CATEGORIES = []
+LOADED_APPLICATIONS = []
 
 class Category(object):
 
@@ -37,22 +40,57 @@ class Category(object):
 class Application(object):
 
     appnme = ''
+    location = ''
+    icon_path = ''
     meta_path = ''
 
-    testing = -1
-    nocd = -1
-    free = -1
+    includes = {
+        'testing': 0,
+        'nocd': 0,
+        'free': 0,
+    }
+
     category = None
     category_index = -1
 
-    def __init__(self, meta_file_path):
-        self.meta_path = meta_file_path
-        self.appname = os.path.basename(self.meta_path).rsplit('.', -1)
+    def __init__(self, dirname):
+        self.appname = os.path.basename(dirname)
+        self.location = dirname
+        self.icon_path = '%s/icon.png' % self.location
+        self.meta_path = '%s/metadata.xml' % self.location
+    def __cmp__(self, other):
+        if self.appname < other.appname:
+            return -1;
+        elif self.appname > other.appname:
+            return 1
+        else:
+            return 0
+    def __eq__(self, other):
+        return self.appname == other.appname
+    def __ne__(self, other):
+        return not self.__eq__(other)
     def load(self):
         try:
-            input = open(self.meta_path, 'r')
+            tree = ET.parse(self.meta_path)
+            root = tree.getroot()
+            includes = root.findall('include')
+            for i in includes:
+                a = i.attrib.get('name', '')
+                if a in self.includes:
+                    val = int(i.text)
+                    self.includes[a] = val
+            icon = root.find('icon')
+            if icon is not None and 'path' in icon.attrib:
+                self.icon_path = icon.attrib['path']
         except IOError:
-            return
+            pass
+        return
+
+def get_toplevel_subdirs(directory):
+    find = Popen(['find', directory, '-maxdepth', '1', '-mindepth', '1', '-type', 'd'], stdout=PIPE)
+    stdout, stderr = find.communicate()
+    subdirs = stdout.split('\n')[:-1]
+    return subdirs
 
 def load_categories():
     category_names = os.listdir(winepack_home)
@@ -61,6 +99,16 @@ def load_categories():
             dirname = '%s/%s' % (winepack_home, name)
             c = Category(dirname)
             LOADED_CATEGORIES.append(c)
+
+def load_applications(category):
+    apps_location = '%s/applications' % category.location
+    application_dirnames = get_toplevel_subdirs(apps_location)
+    for dirname in application_dirnames:
+        a = Application(dirname)
+        if a not in LOADED_APPLICATIONS:
+            a.load()
+            category.add_application(a)
+            LOADED_APPLICATIONS.append(a)
 
 def call_POL(method, *args):
     '''

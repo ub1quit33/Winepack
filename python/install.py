@@ -522,17 +522,11 @@ class InstallWindow(wx.Frame):
         self.i = 0
         array.sort()
         for app in array:
-            app_array = app.split("~")
-            appname = app_array[0]
-            try:
-                free = int(app_array[3])
-                testing = int(app_array[1])
-                nocd = int(app_array[2])
-            except IndexError:
-                free = 0
-                testing = 0
-                nocd = 0
-                
+            appname = app.appname
+            free = app.includes['free']
+            testing = app.includes['testing']
+            nocd = app.includes['nocd']
+
             show = True
             if nocd == 1 and self.nocdChk.IsChecked() == 0:
                 show = False
@@ -542,7 +536,7 @@ class InstallWindow(wx.Frame):
                 show = False
 
             if(show == True):
-                self.icon_look_for = Variables.playonlinux_rep+"/configurations/icones/"+appname
+                self.icon_look_for = app.icon_path
                 if(os.path.exists(self.icon_look_for.encode('utf-8','ignore'))):
                     try:
                         bitmap = wx.Image(self.icon_look_for)
@@ -602,34 +596,9 @@ class InstallWindow(wx.Frame):
                 self.cat_selected = self.current_cat
             except:
                 return 0
-        if(self.cat_selected == 8):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/0",'r',"utf-8")
-        if(self.cat_selected == 3):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/1",'r',"utf-8")
-        if(self.cat_selected == 0):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/2",'r',"utf-8")
-        if(self.cat_selected == 7):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/3",'r',"utf-8")
-        if(self.cat_selected == 5):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/4",'r',"utf-8")
-        if(self.cat_selected == 6):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/5",'r',"utf-8")
-        if(self.cat_selected == 4):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/6",'r',"utf-8")
-        if(self.cat_selected == 1):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/7",'r',"utf-8")
-        if(self.cat_selected == 2):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/8",'r',"utf-8")
-        if(self.cat_selected == 9):
-            self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/9",'r',"utf-8")
-        #if(self.cat_selected == 12):
-        #       self.apps = codecs.open(Variables.playonlinux_rep+"/configurations/listes/10",'r',"utf-8")
-
 
         if(self.cat_selected != -1):
-            self.apps = self.apps.readlines()
-            self.j = 0
-            while(self.j < len(self.apps)):
-                self.apps[self.j] = self.apps[self.j].replace("\n","")
-                self.j += 1
+            category = winepack.LOADED_CATEGORIES[self.cat_selected]
+            winepack.load_applications(category)
+            self.apps = category.applications
             self.WriteApps(self.apps)
